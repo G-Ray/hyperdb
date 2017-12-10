@@ -94,6 +94,9 @@ Notice that none of Alice's entries refer to Bob's, and vice versa. This is
 because neither has written any entries to their feeds since the two became
 aware of each other (authorized & replicated each other's feeds).
 
+Right now there are two "heads" of the graph: Alice's feed at seq 2, and Bob's
+feed at seq 0.
+
 Next, Alice writes a new value, and her latest entry will refer to Bob's:
 
 ```
@@ -120,6 +123,8 @@ now only one "head" in the database. That means there is enough information in
 Alice's seq=3 entry to find any other key in the database. In the last example,
 there were two heads (Alice's seq=2 and Bob's seq=0); both of which would need
 to be read internally in order to locate any key in the database.
+
+Now there is only one "head": Alice's feed at seq 3.
 
 ## Authorization
 
