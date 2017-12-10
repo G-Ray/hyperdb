@@ -10,7 +10,7 @@ and the API supports querying or tracking values at subpaths, like how watching
 for changes on `/foo/bar` will report both changes to `/foo/bar/baz` and also
 `/foo/bar/19`.
 
-## Set of append-only logs
+## Set of append-only logs (feeds)
 
 A HyperDB is fundamentally a set of
 [hypercore](https://github.com/mafintosh/hypercore)s. A *hypercore* is a secure
@@ -22,8 +22,8 @@ the network can verify these attributes without inherently trusting the author.
 Each entry in a hypercore has a *sequence number*, that increments by 1 with
 each write, starting at 0 (`seq=0`).
 
-HyperDB builds its hierarchical key-value store on top of these hypercores, and
-also provides facilities for authorization, and replication of those member
+HyperDB builds its hierarchical key-value store on top of these hypercore feeds,
+and also provides facilities for authorization, and replication of those member
 hypercores.
 
 ### Directed acyclic graph
