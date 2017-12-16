@@ -16,8 +16,10 @@ A HyperDB is fundamentally a set of
 [hypercore](https://github.com/mafintosh/hypercore)s. A *hypercore* is a secure
 append-only log that is identified by a public key, and can only be written to
 by the holder of the corresponding private key. Because it is append-only, old
-values cannot be deleted nor modified. Because it is secure, any other peer in
-the network can verify these attributes without inherently trusting the author.
+values cannot be deleted nor modified. Because it is secure, a feed can be
+downloaded from even untrustworthy peers and verified to be accurate. Any
+modifications (malicious or otherwise) to the original feed data by someone
+other than the author can be readily detected.
 
 Each entry in a hypercore has a *sequence number*, that increments by 1 with
 each write, starting at 0 (`seq=0`).
@@ -29,10 +31,12 @@ hypercores.
 ### Directed acyclic graph
 
 The combination of all operations performed on a HyperDB by all of its members
-forms a DAG (*directed acyclic graph*). Each database operations link backward
-to all of the known "heads" in the graph.
+forms a DAG (*directed acyclic graph*). Each write to the database (setting a
+key to a value) includes information to point backward at all of the known
+"heads" in the graph.
 
-For example, let's say Alice starts a new HyperDB and writes 2 values to it:
+To illustrate what this means, let's say Alice starts a new HyperDB and writes 2
+values to it:
 
 ```
 // Feed
@@ -201,10 +205,10 @@ Consider a fresh HyperDB. We write `/a/b = 24` and get back this node:
   feedSeq: 0,
   feed: 0,
   seq: 0,
-  path: 
+  path:
    [ 1, 2, 0, 1, 2, 0, 2, 2, 3, 0, 1, 2, 1, 3, 0, 3, 0, 0, 2, 1, 0, 2, 0, 0, 2, 0, 0, 3, 2, 1, 1, 2,
      0, 1, 2, 3, 2, 2, 2, 0, 3, 1, 1, 3, 0, 3, 1, 3, 0, 1, 0, 1, 3, 2, 0, 2, 2, 3, 2, 2, 3, 3, 2, 3,
-     4 ] } 
+     4 ] }
 ```
 
 If you compare this path to the one for `/a/b/c` above, you'll see that the
@@ -245,11 +249,13 @@ common (the prefix `/a`).
 Notice though that `trie` is set. It's a long but sparse array. It has 35
 entries, with the last one referencing the first node inserted (`a/b/`). Why?
 
-(Really, it's a sparse array with 64 entries (the length of the `path`). But in
-Javascript only the entries preceding the last value get printed.)
+(If it wasn't stored as a sparse array, you'd actually see 64 entries (the
+length of the `path`). But since the other 29 entries are also empty, hyperdb
+doesn't bother allocating them.)
 
 If you visually compare this node's `path` with the previous node's `path`, how
-many entries do they have in common before the 2-bit numbers diverge?
+many entries do they have in common? At which entry do the 2-bit numbers
+diverge?
 
 At the 35th entry.
 
@@ -264,11 +270,11 @@ This is how finding a node works, starting at any other node:
 3. Compare its `path` against the hash you just computed.
 4. If you discover that the `path` and your hash match, then this is the node
    you're looking for!
-5. Otherwise, once a the 2-bit character from `path` and your hash disagree,
-   node the index # where they differ and look up that value in the node's
-   `trie`. Fetch that node at the given feed and sequence number, and go back to
-   step 2. Repeat until you reach step 3 (match) or there is no entry in the
-   node's trie for the key you're after (no match).
+5. Otherwise, once a 2-bit character from `path` and your hash disagree, note
+   the index # where they differ and look up that value in the node's `trie`.
+   Fetch that node at the given feed and sequence number, and go back to step 3.
+   Repeat until you reach step 4 (match) or there is no entry in the node's trie
+   for the key you're after (no match).
 
 What if there are multiple feeds in the HyperDB? The lookup algorithm changes
 slightly. Replace the above step 2 for:
