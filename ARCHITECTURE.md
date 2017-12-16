@@ -163,10 +163,17 @@ Each node stores a [vector clock](https://en.wikipedia.org/wiki/Vector_clock) of
 the last known sequence number from each feed it knows about. This is what forms
 the DAG structure.
 
-For example, Alice's vector clock on her seq=3 entry above would be `[3, 0]`
-since she knows of her latest entry (seq=3) and Bob's (seq=0).
+A vector clock on a node of, say, `[0, 2, 5]` means:
 
-*TODO: is this correct? ^^^*
+- when this node was written, the largest seq # in my local fed is 0
+- when this node was written, the largest seq # in the second feed I have is 2
+- when this node was written, the largest seq # in the third feed I have is 5
+
+For example, Bob's vector clock for Alice's seq=3 entry above would be `[0, 3]`
+since he knows of her latest entry (seq=3) and his own (seq=0).
+
+The vector clock is used for correctly traversing history. This is necessary for
+the `db#heads` API as well as `db#createHistoryStream`.
 
 ### Prefix trie
 
